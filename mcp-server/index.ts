@@ -2,6 +2,7 @@ import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { config } from 'dotenv';
 import type { Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createMcpServer } from './server.js';
@@ -9,7 +10,11 @@ import { createMcpServer } from './server.js';
 const root = dirname(fileURLToPath(import.meta.url));
 config({ path: join(root, '../.env') });
 
-const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+// Stateful sessions: required for reliable Streamable HTTP with the MCP SDK client
+// (stateless mode breaks after initialize when the client sends notifications/initialized).
+const transport = new StreamableHTTPServerTransport({
+  sessionIdGenerator: () => randomUUID(),
+});
 const mcp = createMcpServer();
 await mcp.connect(transport);
 

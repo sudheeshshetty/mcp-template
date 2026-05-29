@@ -98,7 +98,7 @@ Copy [.env.example](.env.example) → `.env`. Key variables:
 
 | Problem | Fix |
 |---------|-----|
-| Cannot connect to MCP server | Run `pnpm dev:mcp` before chat-api |
+| MCP not ready / cannot connect | Run `pnpm install`, then `pnpm dev` (chat-api retries). Ensure nothing else uses port 8788. |
 | CORS error in browser | Add your site to `CORS_ORIGINS` |
 | Ollama errors | Ensure Ollama is running (`curl :11434/api/tags`) and run `pnpm setup:ollama` |
 | Tool fails on employees | Run `pnpm dev:sample` or disable sample tool |

@@ -48,7 +48,7 @@ export async function connectMcpClient(opts?: ConnectMcpOptions): Promise<Client
       lastError = e instanceof Error ? e : new Error(String(e));
       if (attempt < retries) {
         console.error(
-          `MCP not ready (${attempt + 1}/${retries + 1}), retrying in ${retryDelayMs}ms…`,
+          `MCP not ready (${attempt + 1}/${retries + 1}): ${lastError.message} — retrying in ${retryDelayMs}ms…`,
         );
         await new Promise((r) => setTimeout(r, retryDelayMs));
       }
