@@ -1,3 +1,6 @@
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import * as z from 'zod';
+
 export type WorkerHubClientConfig = {
   baseUrl: string;
   accessToken?: string;
@@ -54,9 +57,9 @@ export function createWorkerHubClient(config: WorkerHubClientConfig) {
   };
 }
 
-export type WorkerHubClient = ReturnType<typeof createWorkerHubClient>;
+type WorkerHubClient = ReturnType<typeof createWorkerHubClient>;
 
-export function summarizeCategories(raw: unknown): unknown[] {
+function summarizeCategories(raw: unknown): unknown[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((row) => {
     const r = row as Record<string, unknown>;
@@ -64,7 +67,7 @@ export function summarizeCategories(raw: unknown): unknown[] {
   });
 }
 
-export function summarizeServices(raw: unknown): unknown[] {
+function summarizeServices(raw: unknown): unknown[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((row) => {
     const r = row as Record<string, unknown>;
@@ -78,4 +81,72 @@ export function summarizeServices(raw: unknown): unknown[] {
       provider: provider ? { id: provider.id, name: provider.name } : null,
     };
   });
+}
+
+let api: WorkerHubClient | null = null;
+
+function getApi(): WorkerHubClient {
+  if (!api) {
+    const baseUrl = (process.env.WORKERHUB_API_BASE_URL ?? '').trim();
+    if (!baseUrl) throw new Error('WORKERHUB_API_BASE_URL is required in mcp/.env');
+    api = createWorkerHubClient({
+      baseUrl,
+      accessToken: process.env.WORKERHUB_ACCESS_TOKEN,
+    });
+  }
+  return api;
+}
+
+async function listCategories() {
+  return { categories: summarizeCategories(await getApi().listCategories()) };
+}
+
+async function listServices(args: Record<string, unknown>) {
+  return {
+    services: summarizeServices(
+      await getApi().listServices({
+        categoryId: typeof args.categoryId === 'string' ? args.categoryId : undefined,
+        providerId: typeof args.providerId === 'string' ? args.providerId : undefined,
+      }),
+    ),
+  };
+}
+
+function toolText(data: unknown): string {
+  return JSON.stringify(data, null, 2);
+}
+
+/** Register WorkerHub tools on the MCP server. */
+export function registerWorkerHubTools(server: McpServer): void {
+  server.registerTool(
+    'workerhub_list_categories',
+    {
+      description:
+        'Fetch WorkerHub category list. Call ONLY when the user wants categories or service types from WorkerHub.',
+      inputSchema: z.object({}),
+    },
+    async () => ({
+      content: [{ type: 'text', text: toolText(await listCategories()) }],
+    }),
+  );
+
+  server.registerTool(
+    'workerhub_list_services',
+    {
+      description:
+        'Fetch WorkerHub services with provider and price. Call ONLY when the user asks what services exist, prices, or availability on WorkerHub.',
+      inputSchema: z.object({
+        categoryId: z.string().optional(),
+        providerId: z.string().optional(),
+      }),
+    },
+    async (args) => ({
+      content: [
+        {
+          type: 'text',
+          text: toolText(await listServices(args as Record<string, unknown>)),
+        },
+      ],
+    }),
+  );
 }

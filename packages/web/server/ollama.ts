@@ -1,5 +1,4 @@
-import { getTools, runTool } from './runtime.js';
-import { toolsForOllama } from './tools.js';
+import { callMcpTool, getOllamaToolsFromMcp } from './mcp-client.js';
 
 const ollamaUrl = () =>
   (process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434').replace(/\/+$/, '');
@@ -50,7 +49,6 @@ async function ollamaChat(body: Record<string, unknown>) {
   };
 }
 
-/** Plain chat — no tools (for retry after bad meta-replies). */
 async function chatPlain(userMessage: string): Promise<string> {
   const { message } = await ollamaChat({
     messages: [
@@ -66,7 +64,7 @@ async function chatPlain(userMessage: string): Promise<string> {
 }
 
 export async function chat(userMessage: string): Promise<{ reply: string; toolsUsed: string[] }> {
-  const ollamaTools = toolsForOllama(getTools());
+  const ollamaTools = await getOllamaToolsFromMcp();
   const toolsUsed: string[] = [];
   const messages: Array<Record<string, unknown>> = [
     { role: 'system', content: SYSTEM },
@@ -83,7 +81,7 @@ export async function chat(userMessage: string): Promise<{ reply: string; toolsU
       for (const { function: fn } of calls) {
         toolsUsed.push(fn.name);
         try {
-          const text = await runTool(fn.name, parseArgs(fn.arguments));
+          const text = await callMcpTool(fn.name, parseArgs(fn.arguments));
           messages.push({ role: 'tool', content: text });
         } catch (e) {
           const err = e instanceof Error ? e.message : String(e);
