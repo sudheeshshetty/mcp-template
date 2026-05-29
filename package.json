@@ -1,0 +1,19 @@
+{
+  "name": "workerhub-mcp-demo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Isolated MCP + Ollama chat demo for WorkerHub (delete mcp/ to remove)",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm build && concurrently -n app,web -c blue,green \"pnpm dev:app\" \"pnpm dev:web\"",
+    "dev:app": "pnpm --filter @workerhub-mcp/app dev",
+    "dev:web": "pnpm --filter @workerhub-mcp/web dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
