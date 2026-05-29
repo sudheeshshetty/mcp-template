@@ -10,23 +10,52 @@ type OllamaTool = {
 let client: Client | null = null;
 let ollamaTools: OllamaTool[] | null = null;
 
-export async function connectMcpClient(): Promise<Client> {
-  if (client) return client;
+export type ConnectMcpOptions = {
+  /** Retries when MCP is still starting (e.g. `pnpm dev`). Default 0. */
+  retries?: number;
+  /** Delay between retries in ms. Default 500. */
+  retryDelayMs?: number;
+};
 
+async function connectMcpClientOnce(): Promise<Client> {
   const url = getMcpServerUrl();
   const transport = new StreamableHTTPClientTransport(new URL(url));
 
-  client = new Client({ name: 'mcp-chat-template-host', version: '1.0.0' });
+  const c = new Client({ name: 'mcp-chat-template-host', version: '1.0.0' });
   try {
-    await client.connect(transport);
+    await c.connect(transport);
   } catch (e) {
-    client = null;
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(
       `Cannot connect to MCP server at ${url}. Start it first: pnpm dev:mcp (${msg})`,
     );
   }
-  return client;
+  client = c;
+  return c;
+}
+
+export async function connectMcpClient(opts?: ConnectMcpOptions): Promise<Client> {
+  if (client) return client;
+
+  const retries = opts?.retries ?? 0;
+  const retryDelayMs = opts?.retryDelayMs ?? 500;
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await connectMcpClientOnce();
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      if (attempt < retries) {
+        console.error(
+          `MCP not ready (${attempt + 1}/${retries + 1}), retrying in ${retryDelayMs}ms…`,
+        );
+        await new Promise((r) => setTimeout(r, retryDelayMs));
+      }
+    }
+  }
+
+  throw lastError!;
 }
 
 export async function getOllamaToolsFromMcp(): Promise<OllamaTool[]> {

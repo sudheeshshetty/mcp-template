@@ -28,12 +28,15 @@ flowchart LR
 
 ## Quickstart
 
-**Prerequisites:** Node 20+, pnpm, [Ollama](https://ollama.com)
+**Prerequisites:** Node 20+, pnpm, [Ollama](https://ollama.com) running on `:11434`
+
+1. **Ollama running** — on macOS, open the Ollama app (or ensure `curl http://127.0.0.1:11434/api/tags` works). You do **not** need `ollama run llama3.1`.
+2. **Model pulled once** — `pnpm setup:ollama` (downloads `llama3.1`; chat-api loads it on each request).
 
 ```bash
 cp .env.example .env
 pnpm install
-pnpm setup:ollama    # pull model — then run: ollama serve
+pnpm setup:ollama    # one-time: ollama pull llama3.1
 pnpm build
 pnpm dev             # MCP :8788 + chat-api :8787 + demo web :5174
 ```
@@ -97,7 +100,7 @@ Copy [.env.example](.env.example) → `.env`. Key variables:
 |---------|-----|
 | Cannot connect to MCP server | Run `pnpm dev:mcp` before chat-api |
 | CORS error in browser | Add your site to `CORS_ORIGINS` |
-| Ollama errors | Run `ollama serve` and `pnpm setup:ollama` |
+| Ollama errors | Ensure Ollama is running (`curl :11434/api/tags`) and run `pnpm setup:ollama` |
 | Tool fails on employees | Run `pnpm dev:sample` or disable sample tool |
 
 More: [docs/GUIDE.md § Troubleshooting](docs/GUIDE.md#13-troubleshooting)

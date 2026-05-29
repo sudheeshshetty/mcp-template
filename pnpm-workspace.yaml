@@ -2,4 +2,5 @@ packages:
   - mcp-server
   - chat-api
   - widget
+  - web
   - sample-server

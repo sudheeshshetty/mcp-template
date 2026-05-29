@@ -160,9 +160,12 @@ mcp-chat-template/
 ### Ollama setup script
 
 ```bash
-pnpm setup:ollama
-ollama serve    # keep running in a terminal
+pnpm setup:ollama   # downloads the model (ollama pull); run once
 ```
+
+**Ollama must be running** (API on `:11434`). On macOS, open the Ollama app — you usually do **not** need `ollama serve` (if port 11434 is already in use, Ollama is already up).
+
+You do **not** need `ollama run llama3.1`. The chat-api passes `OLLAMA_MODEL` to Ollama on each `/chat` request; `pnpm dev` does not start Ollama.
 
 ### Project setup
 
@@ -191,21 +194,15 @@ pnpm build
 
 ### Minimal (chat only)
 
+Ensure Ollama is running and the model is pulled (`pnpm setup:ollama`), then:
+
 ```bash
-# Terminal 1
-ollama serve
-
-# Terminal 2
-pnpm dev:mcp
-
-# Terminal 3
-pnpm dev:api
-
-# Terminal 4 (optional UI)
-pnpm dev:web
+pnpm dev:mcp    # terminal 1 — or use pnpm dev for all services
+pnpm dev:api    # terminal 2
+pnpm dev:web    # optional demo UI :5174
 ```
 
-Or one command (after `ollama serve`):
+Or one command (starts mcp-server, chat-api, and web together; chat-api waits for MCP):
 
 ```bash
 pnpm dev
@@ -422,7 +419,7 @@ Set production `.env` and embed:
 |---------|-------|-----|
 | Cannot connect to MCP server | mcp-server not running | `pnpm dev:mcp` first |
 | CORS error | Origin not allowed | Set `CORS_ORIGINS` |
-| Ollama connection failed | `ollama serve` not running | Start Ollama |
+| Ollama connection failed | Ollama not on `:11434` | Open Ollama app or check `curl :11434/api/tags` |
 | Tool error / sample API | sample-server down | `pnpm dev:sample` or disable tool |
 | Empty / weird replies | Weak model routing | Try `OLLAMA_MODEL=qwen2.5` |
 | `chat-widget.js` 404 | Widget not built | `pnpm build` |

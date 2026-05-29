@@ -17,7 +17,7 @@ function corsOptions(): cors.CorsOptions {
   return { origin: raw.split(',').map((s) => s.trim()) };
 }
 
-await connectMcpClient();
+await connectMcpClient({ retries: 30, retryDelayMs: 500 });
 
 const app = express();
 app.use(cors(corsOptions()));
