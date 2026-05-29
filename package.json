@@ -1,14 +1,17 @@
 {
-  "name": "workerhub-mcp-demo",
+  "name": "mcp-chat-template",
   "private": true,
-  "version": "0.0.0",
-  "description": "Isolated MCP + Ollama chat demo for WorkerHub (delete mcp/ to remove)",
+  "version": "1.0.0",
+  "description": "Embeddable MCP chat widget + Ollama host + MCP tool server template",
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @workerhub-mcp/app build && concurrently -n mcp,web -c magenta,green \"pnpm --filter @workerhub-mcp/app dev\" \"pnpm --filter @workerhub-mcp/web dev\"",
-    "dev:mcp": "pnpm --filter @workerhub-mcp/app dev",
-    "dev:web": "pnpm --filter @workerhub-mcp/web dev:ui",
-    "dev:api": "pnpm --filter @workerhub-mcp/web dev:api"
+    "dev": "pnpm build && concurrently -n mcp,api,web -c magenta,blue,green \"pnpm dev:mcp\" \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:all": "pnpm build && concurrently -n mcp,api,sample,web -c magenta,blue,yellow,green \"pnpm dev:mcp\" \"pnpm dev:api\" \"pnpm dev:sample\" \"pnpm dev:web\"",
+    "dev:mcp": "pnpm --filter @mcp-chat-template/mcp-server dev",
+    "dev:api": "pnpm --filter @mcp-chat-template/chat-api dev",
+    "dev:sample": "pnpm --filter @mcp-chat-template/sample-server dev",
+    "dev:web": "pnpm --filter @mcp-chat-template/web dev",
+    "setup:ollama": "bash scripts/setup-ollama.sh"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

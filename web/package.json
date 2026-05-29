@@ -1,0 +1,8 @@
+{
+  "name": "@mcp-chat-template/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes serve . -p 5174"
+  }
+}

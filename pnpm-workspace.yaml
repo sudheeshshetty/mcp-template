@@ -1,2 +1,5 @@
 packages:
-  - packages/*
+  - mcp-server
+  - chat-api
+  - widget
+  - sample-server
